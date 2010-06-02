@@ -20,12 +20,15 @@ sub before_release {
     my $xd = SVK::XD->new;
 	my $svk = SVK->new( xd => $xd, output => \$output );
 
-use orz;
-
     # fetch current branch
-    my ($branch) =
-        map { /^\*\s+(.+)/ ? $1 : () }
-        $svk->branch;
+	my ( undef, $branch, undef, $cinfo, undef ) = 
+		$xd->find_repos_from_co( '.', undef );
+	my $depotpath = $cinfo->{depotpath};
+	my $firstpart = qr|^/(.*?)/|;
+	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
+	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
+
+use orz;
 
     # check if some changes are staged for commit
     my @output = $svk->diff( { cached=>1, 'name-status'=>1 } );
