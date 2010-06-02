@@ -19,17 +19,10 @@ my $zilla = Dist::Zilla::Tester->from_config({
 });
 
 chdir $zilla->tempdir->subdir('source');
-mkdir 'svk_depot';
-my $depot = getcwd . '/svk_depot';
 my $output;
-my $xd = SVK::XD->new;
-$xd->_create_depot( $depot );
-# SVK::Command->invoke($xd, 'depotmap', undef, '/dzil/', $depot );
+my $xd = SVK::XD->new( depotmap => { 'dzil' => '/home/drbean/dzil/svk_depot' });
 my $svk = SVK->new (xd => $xd, output => \$output);
-$svk->depotmap( '/dzil/', $depot );
 $svk->checkout('/dzil/', '.');
-$svk->ignore( 'svk_depot' );
-$svk->commit( '-m', 'ignore repo in working copy!' );
 
 # create initial .gitignore
 # we cannot ship it in the dist, since PruneCruft plugin would trim it
