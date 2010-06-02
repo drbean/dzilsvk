@@ -2,7 +2,7 @@ use 5.008;
 use strict;
 use warnings;
 
-package Dist::Zilla::Plugin::Git::Commit;
+package Dist::Zilla::Plugin::SVK::Commit;
 # ABSTRACT: commit dirty files
 
 use File::Temp           qw{ tempfile };
