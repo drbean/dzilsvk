@@ -68,7 +68,7 @@ sub after_release {
 
     # create a tag with the new version
     my $tag = _format_tag($self->tag_format, $self->zilla);
-    my $message = _format_tag($self->tag_message, $self->zilla) );
+    my $message = _format_tag($self->tag_message, $self->zilla);
 	$svk->copy( "/$depotname/$branch", "/$depotname/$project/$tags/$tag",
 		'-m', $message );
     $self->log("Tagged $tag");
