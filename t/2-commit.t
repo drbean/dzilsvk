@@ -2,7 +2,6 @@
 
 use strict;
 use warnings;
-use lib qw/lib/;
 
 use Dist::Zilla  1.093250;
 use Dist::Zilla::Tester;
@@ -11,12 +10,6 @@ use SVK::XD;
 use Path::Class;
 use Test::More   tests => 1;
 use Cwd;
-use Cwd qw(cwd);
-
-my $cwd = cwd();
-my $zilla = Dist::Zilla::Tester->from_config({
-  dist_root => dir($cwd, qw(t commit-build)),
-});
 
 # build fake repository
 my $zilla = Dist::Zilla::Tester->from_config({
