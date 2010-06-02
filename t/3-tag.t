@@ -31,8 +31,12 @@ $svk->checkout('/dzil/', '.');
 $svk->ignore( 'svk_depot' );
 $svk->commit( '-m', 'ignore repo in working copy!' );
 
-$svk->add( qw{ dist.ini Changes } );
-$svk->commit( { message => 'initial commit' } );
+$svk->mkdir('/dzil/project', '-m', 'project' );
+$svk->mkdir('/dzil/project/trunk', '-m', 'trunk!' );
+$svk->mkdir('/dzil/project/tags', '-m', 'tags!' );
+
+$svk->mkdir('/dzil/project/trunk/change', '-m', 'trunk change!' );
+$svk->checkout('/dzil/project/trunk', '.');
 
 # do the release
 $zilla->release;
