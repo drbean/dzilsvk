@@ -2,7 +2,7 @@ use 5.008;
 use strict;
 use warnings;
 
-package Dist::Zilla::Plugin::Git::Tag;
+package Dist::Zilla::Plugin::SVK::Tag;
 # ABSTRACT: tag the new version
 
 use SVK;
@@ -29,6 +29,7 @@ with 'Dist::Zilla::Role::AfterRelease';
 
 has tag_format  => ( ro, isa=>Str, default => 'v%v' );
 has tag_message => ( ro, isa=>Str, default => 'v%v' );
+has tag_directory => ( ro, isa=>Str, default => 'tags' );
 
 
 # -- role implementation
@@ -38,11 +39,18 @@ sub before_release {
     my $output;
     my $xd = SVK::XD->new;
 	my $svk = SVK->new( xd => $xd, output => \$output );
+	my ( undef, $branch, undef, $cinfo, undef ) = 
+		$xd->find_repos_from_co( '.', undef );
+	my $depotpath = $cinfo->{depotpath};
+	my $firstpart = qr|^/(.*?)/|;
+	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
+	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
+	my $tags = $self->tag_directory;
 
     # Make sure a tag with the new version doesn't exist yet:
     my $tag = _format_tag($self->tag_format, $self->zilla);
     $self->log_fatal("tag $tag already exists")
-        if $svk->tag('-l', $tag );
+        if $svk->ls( "/$depotname/$project/$tags/$tag" );
 }
 
 sub after_release {
@@ -50,15 +58,19 @@ sub after_release {
     my $output;
     my $xd = SVK::XD->new;
 	my $svk = SVK->new( xd => $xd, output => \$output );
-
-    # Make an annotated tag if tag_message, lightweight tag otherwise:
-    my @opts = $self->tag_message
-        ? ( '-m' => _format_tag($self->tag_message, $self->zilla) )
-        : ();
+	my ( undef, $branch, undef, $cinfo, undef ) = 
+		$xd->find_repos_from_co( '.', undef );
+	my $depotpath = $cinfo->{depotpath};
+	my $firstpart = qr|^/(.*?)/|;
+	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
+	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
+	my $tags = $self->tag_directory;
 
     # create a tag with the new version
     my $tag = _format_tag($self->tag_format, $self->zilla);
-    $svk->tag( @opts, $tag );
+    my $message = _format_tag($self->tag_message, $self->zilla) );
+	$svk->copy( "/$depotname/$branch", "/$depotname/$project/$tags/$tag",
+		'-m', $message );
     $self->log("Tagged $tag");
 }
 
@@ -74,21 +86,16 @@ __END__
 
 In your F<dist.ini>:
 
-    [Git::Tag]
+    [SVK::Tag]
     tag_format  = v%v       ; this is the default
     tag_message = v%v       ; this is the default
+	tag_directory = tags    ; the default is 'tags', as in /project/tags
 
 =head1 DESCRIPTION
 
-Once the release is done, this plugin will record this fact in git by
-creating a tag.  By default, it makes an annotated tag.  You can set
-the C<tag_message> attribute to change the message.  If you set
-C<tag_message> to the empty string, it makes a lightweight tag.
+Once the release is done, this plugin will record this fact by creating a tag of the present branch. You can set the C<tag_message> attribute to change the message.
 
-It also checks before the release to ensure the tag to be created
-doesn't already exist.  (You would have to manually delete the
-existing tag before you could release the same version again, but that
-is almost never a good idea.)
+It also checks before the release to ensure the tag to be created doesn't already exist.  (You would have to manually delete the existing tag before you could release the same version again, but that is almost never a good idea.)
 
 The plugin accepts the following options:
 
@@ -97,7 +104,8 @@ The plugin accepts the following options:
 =item * tag_format - format of the tag to apply. Defaults to C<v%v>.
 
 =item * tag_message - format of the commit message. Defaults to C<v%v>.
-Use C<tag_message = > to create a lightweight tag.
+
+=item * tag_directory - location of the tags directory, below the project directory. Defaults to C<tags>.
 
 =back
 
