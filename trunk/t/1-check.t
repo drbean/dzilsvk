@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use lib qw'lib';
+
 use Dist::Zilla     1.093250;
 use Dist::Zilla::Tester;
 use SVK;
@@ -18,20 +20,17 @@ my $zilla = Dist::Zilla::Tester->from_config({
   dist_root => dir(qw(t check)),
 });
 
-# # chdir $zilla->tempdir->subdir('source');
-# my $output;
-# my $xd = SVK::XD->new( depotmap => { 'dzil' => '/home/drbean/dzil/svk_depot' });
-# my $svk = SVK->new (xd => $xd, output => \$output);
-# $svk->checkout('/dzil/', '.');
+chdir $zilla->tempdir->subdir('source');
+system( "svk import -t /dzil/project -m 'project'" );
 
 # create initial .gitignore
-# we cannot ship it in the dist, since PruneCruft plugin would trim it
 append_to_file('.gitignore', 'Foo-*');
-system( "svk ignore .gitignore" );
-system( "svk commit -m 'ignore file for git'" );
 
 # untracked files
-throws_ok { $zilla->release } qr/unversioned files/, 'unversioned files';
+throws_ok { $zilla->release } qr/unversioned files/,
+								'no unversioned files allowed';
+
+unlink 'Foo-Bar-1.23.tar.gz';
 
 sub append_to_file {
     my ($file, @lines) = @_;
@@ -40,14 +39,15 @@ sub append_to_file {
     close $fh;
 }
 
-__END__
-
 # modified files
-$svk->add( qw{ dist.ini Changes foobar } );
-throws_ok { $zilla->release } qr/uncommitted files/, 'uncommitted files';
-$svk->commit( { message => 'initial commit' } );
+append_to_file('foobar', "an uncommitted change\n");
+throws_ok { $zilla->release } qr/modified files/,
+					'no uncommitted files allowed';
+system( "svk commit -m 'initial commit'" );
+
+unlink 'Foo-Bar-1.23.tar.gz';
 
 # changelog and dist.ini can be modified
 append_to_file('Changes',  "\n");
 append_to_file('dist.ini', "\n");
-lives_ok { $zilla->release } 'Changes and dist.ini can be modified';
+lives_ok { $zilla->release } 'Modified Changes and dist.ini allowed';
