@@ -9,7 +9,7 @@ use SVK; use SVK::XD;
 use Moose;
 
 with 'Dist::Zilla::Role::BeforeRelease';
-with 'Dist::Zilla::Role::Git::DirtyFiles';
+with 'Dist::Zilla::Role::SVK::DirtyFiles';
 
 use Cwd;
 
@@ -18,49 +18,25 @@ use Cwd;
 sub before_release {
     my $self = shift;
     my $output;
-	my $xd = SVK::XD->new( depotmap => {
-			'dzil' => '/home/drbean/dzil/svk_depot' } );
-	my $svk = SVK->new( xd => $xd, output => \$output );
 
-    # fetch current branch
-	my ( undef, $branch, undef, $cinfo, undef ) = 
-		$xd->find_repos_from_co( getcwd, undef );
-	my $depotpath = $cinfo->{depotpath};
-	my $firstpart = qr|^/(.*?)/|;
-	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
-	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
-
-use orz;
-
-    # check if some changes are staged for commit
-    my @output = $svk->diff( { cached=>1, 'name-status'=>1 } );
-    if ( @output ) {
-        my $errmsg =
-            "branch $branch has some changes staged for commit:\n" .
-            join "\n", map { "\t$_" } @output;
-        $self->log_fatal($errmsg);
-    }
+	my $dir = getcwd;
+	my @file = qx "svk status $dir";
 
     # everything but files listed in allow_dirty should be in a
     # clean state
-    my @output = $self->list_dirty_files($svk);
-    if ( @output ) {
+    my @dirty = $self->list_dirty_files;
+    if ( @dirty ) {
         my $errmsg =
-            "branch \$branch has some uncommitted files:\n" .
-            join "\n", map { "\t$_" } @output;
+            "branch at $dir has modified files not on waiver list:\n" .
+            join "\n", map { "\t$_" } @dirty;
         $self->log_fatal($errmsg);
     }
 
-no orz;
-
     # no files should be untracked
-    # DOTO or TODO? including dot files?
-	my @file = glob '*';
-	my @dotfile = glob '.*';
-	my @virgin = grep { qx "svk st $_" =~ m/^\?/ ) @file, @dotfile;
+	my @virgin = grep m/^\?/, @file;
 	if ( @virgin ) {
 		my $errmsg =
-			"branch \$branch has unversioned files:\n" .
+			"branch at $dir has unversioned files:\n" .
 			join "\n", map { "\t$_" } @virgin;
 		$self->log_fatal($errmsg);
     }
