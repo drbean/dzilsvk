@@ -11,18 +11,20 @@ use Moose;
 with 'Dist::Zilla::Role::BeforeRelease';
 with 'Dist::Zilla::Role::Git::DirtyFiles';
 
+use Cwd;
 
 # -- public methods
 
 sub before_release {
     my $self = shift;
     my $output;
-    my $xd = SVK::XD->new;
+	my $xd = SVK::XD->new( depotmap => {
+			'dzil' => '/home/drbean/dzil/svk_depot' } );
 	my $svk = SVK->new( xd => $xd, output => \$output );
 
     # fetch current branch
 	my ( undef, $branch, undef, $cinfo, undef ) = 
-		$xd->find_repos_from_co( '.', undef );
+		$xd->find_repos_from_co( getcwd, undef );
 	my $depotpath = $cinfo->{depotpath};
 	my $firstpart = qr|^/(.*?)/|;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
