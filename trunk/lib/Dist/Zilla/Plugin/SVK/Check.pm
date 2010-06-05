@@ -56,14 +56,13 @@ no orz;
     # no files should be untracked
     # DOTO or TODO? including dot files?
 	my @file = glob '*';
-    my @output = grep {
-		$svk->status($_); $output =~ m/^\?\s(.*)$/; $1 }
-			@file;
-    if ( @output ) {
-        my $errmsg =
-            "branch \$branch has some unversioned files:\n" .
-            join "\n", map { "\t$_" } @output;
-        $self->log_fatal($errmsg);
+	my @dotfile = glob '.*';
+	my @virgin = grep { qx "svk st $_" =~ m/^\?/ ) @file, @dotfile;
+	if ( @virgin ) {
+		my $errmsg =
+			"branch \$branch has unversioned files:\n" .
+			join "\n", map { "\t$_" } @virgin;
+		$self->log_fatal($errmsg);
     }
 
     $self->log( "branch \$branch is in a clean state and no unversioned files" );

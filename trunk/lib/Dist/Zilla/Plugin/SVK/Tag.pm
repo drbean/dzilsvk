@@ -5,8 +5,6 @@ use warnings;
 package Dist::Zilla::Plugin::SVK::Tag;
 # ABSTRACT: tag the new version
 
-use SVK;
-use SVK::XD;
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::Types::Moose qw{ Str };
@@ -24,6 +22,7 @@ use String::Formatter method_stringf => {
 with 'Dist::Zilla::Role::BeforeRelease';
 with 'Dist::Zilla::Role::AfterRelease';
 
+use Cwd;
 
 # -- attributes
 
@@ -36,12 +35,8 @@ has tag_directory => ( ro, isa=>Str, default => 'tags' );
 
 sub before_release {
     my $self = shift;
-    my $output;
-    my $xd = SVK::XD->new;
-	my $svk = SVK->new( xd => $xd, output => \$output );
-	my ( undef, $branch, undef, $cinfo, undef ) = 
-		$xd->find_repos_from_co( '.', undef );
-	my $depotpath = $cinfo->{depotpath};
+	my $cwd = getcwd;
+	my $info = qx| svk info $cwd |;
 	my $firstpart = qr|^/(.*?)/|;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
 	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
@@ -50,7 +45,7 @@ sub before_release {
     # Make sure a tag with the new version doesn't exist yet:
     my $tag = _format_tag($self->tag_format, $self->zilla);
     $self->log_fatal("tag $tag already exists")
-        if $svk->ls( "/$depotname/$project/$tags/$tag" );
+        if qx| $svk ls "/$depotname/$project/$tags/$tag" |;
 }
 
 sub after_release {
