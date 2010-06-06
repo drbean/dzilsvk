@@ -30,7 +30,7 @@ append_to_file('.gitignore', 'Foo-*');
 throws_ok { $zilla->release } qr/unversioned files/,
 								'no unversioned files allowed';
 
-unlink 'Foo-Bar-1.23.tar.gz';
+unlink grep m/Foo-1\.23\.tar\.gz/, glob '*';
 
 sub append_to_file {
     my ($file, @lines) = @_;
@@ -45,7 +45,7 @@ throws_ok { $zilla->release } qr/modified files/,
 					'no uncommitted files allowed';
 system( "svk commit -m 'initial commit'" );
 
-unlink 'Foo-Bar-1.23.tar.gz';
+unlink grep m/Foo-1\.23\.tar\.gz/, glob '*';
 
 # changelog and dist.ini can be modified
 append_to_file('Changes',  "\n");
