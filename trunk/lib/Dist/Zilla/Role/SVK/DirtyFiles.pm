@@ -10,6 +10,7 @@ use Moose::Autobox;
 use MooseX::Has::Sugar;
 use MooseX::Types::Moose qw{ ArrayRef Str };
 
+use Cwd; use File::Basename;
 
 # -- attributes
 
@@ -47,12 +48,9 @@ sub _build_allow_dirty { [ 'dist.ini', shift->changelog ] }
 
 =method list_dirty_files
 
-  my @dirty = $plugin->list_dirty_files($git, $listAllowed);
+  my @dirty = $plugin->list_dirty_files($listAllowed);
 
-This returns a list of the modified or deleted files in C<$git>,
-filtered against the C<allow_dirty> attribute.  If C<$listAllowed> is
-true, only allowed files are listed.  If it's false, only files that
-are not allowed to be dirty are listed.
+This returns a list of the modified or deleted files in the checkout, filtered against the C<allow_dirty> attribute, excluding dot files.  If C<$listAllowed> is true, only allowed files are listed.  If it's false, only files that are not allowed to be dirty are listed.
 
 In scalar context, returns the number of dirty files.
 
@@ -60,12 +58,15 @@ In scalar context, returns the number of dirty files.
 
 sub list_dirty_files
 {
-  my ($self, $svk, $listAllowed) = @_;
+  my ($self, $listAllowed) = @_;
 
   my %allowed = map { $_ => 1 } $self->allow_dirty->flatten;
-
-  return grep { $allowed{$_} ? $listAllowed : !$listAllowed }
-      $svk->ls_files( { modified=>1, deleted=>1 } );
+  my @file = qx "svk status";
+  my @uncommitted = grep m/^(M|D)/, @file;
+  # my @bases = map { basename($_) } @uncommitted;
+  # return grep { $allowed{$_} ? $listAllowed : !$listAllowed } @uncommitted;
+  return grep { $allowed{$_} ? $listAllowed : not $listAllowed } $self->allow_dirty->flatten;
+  # return grep { $allowed{$_} ? ! $listAllowed : $listAllowed } @bases;
 } # end list_dirty_files
 
 
