@@ -23,14 +23,14 @@ my $zilla = Dist::Zilla::Tester->from_config({
 chdir $zilla->tempdir->subdir('source');
 system( "svk import -t /dzil/project -m 'project'" );
 
-# create initial .gitignore
-append_to_file('.gitignore', 'Foo-*');
+my $name = $zilla->name;
+my $version = $zilla->version;
+# ignore archive created by zilla at release
+system("svk ignore $name-$version.tar.gz");
 
 # untracked files
 throws_ok { $zilla->release } qr/unversioned files/,
 								'no unversioned files allowed';
-
-unlink grep m/Foo-1\.23\.tar\.gz/, glob '*';
 
 sub append_to_file {
     my ($file, @lines) = @_;
@@ -44,8 +44,6 @@ append_to_file('foobar', "an uncommitted change\n");
 throws_ok { $zilla->release } qr/modified files/,
 					'no uncommitted files allowed';
 system( "svk commit -m 'initial commit'" );
-
-unlink grep m/Foo-1\.23\.tar\.gz/, glob '*';
 
 # changelog and dist.ini can be modified
 append_to_file('Changes',  "\n");
