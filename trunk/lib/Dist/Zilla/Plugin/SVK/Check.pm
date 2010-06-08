@@ -20,7 +20,7 @@ sub before_release {
     my $output;
 
 	my $dir = getcwd;
-	my @file = qx "svk status $dir";
+	my @file = qx "svk status";
 
     # everything but files listed in allow_dirty should be in a
     # clean state
