@@ -13,18 +13,25 @@ use SVK::Command;
 use Path::Class;
 use Test::More      tests => 3;
 use Test::Exception;
-use Cwd;
+use Cwd; use File::Basename;
+use Try::Tiny;
 
 # build fake repository
 my $zilla = Dist::Zilla::Tester->from_config({
   dist_root => dir(qw(t check)),
 });
 
-chdir $zilla->tempdir->subdir('source');
-system( "svk import -t /dzil/project -m 'project'" );
-
 my $name = $zilla->name;
 my $version = $zilla->version;
+
+my $dir = getcwd
+my $tempdir = $zilla->tempdir;
+my $depotname = basename $tempdir;
+try { system( "svk depotmap $depotname $tempdir" ); }
+	catch { warn "returned $_ " };
+chdir $zilla->tempdir->subdir('source');
+system( "svk import -t -m 'dzil plugin check' $dir /$depotname/$name" );
+
 # ignore archive created by zilla at release
 system("svk ignore $name-$version.tar.gz");
 
