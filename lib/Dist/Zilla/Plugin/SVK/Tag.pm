@@ -37,7 +37,10 @@ has tag_directory => ( ro, isa=>Str, default => 'tags' );
 sub before_release {
     my $self = shift;
     my $output;
-    my $xd = SVK::XD->new;
+	my $xd = SVK::XD->new( giantlock => "$tempdir/lock",
+		statefile => "$tempdir/config",
+		svkpath => "/home/drbean/.svk",
+		);
 	my $svk = SVK->new( xd => $xd, output => \$output );
 	my ( undef, $branch, undef, $cinfo, undef ) = 
 		$xd->find_repos_from_co( '.', undef );
