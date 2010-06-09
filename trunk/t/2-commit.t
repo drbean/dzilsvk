@@ -43,6 +43,8 @@ $zilla->release;
 my $log = qx/ svk log -r HEAD /;
 like( $log, qr/v1.23\n\n - foo\n - bar\n - baz\n/, 'commit message taken from changelog' );
 
+system( "svk depotmap -d $depotname" );
+
 sub append_to_file {
     my ($file, @lines) = @_;
     open my $fh, '>>', $file or die "can't open $file: $!";
