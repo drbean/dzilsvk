@@ -26,7 +26,7 @@ my $version = $zilla->version;
 
 my $dir = getcwd;
 my $tempdir = $zilla->tempdir;
-my $depotname = basename $tempdir;
+my $depotname = basename( "$tempdir" );
 system( "svk depotmap -i $depotname $tempdir" );
 chdir $zilla->tempdir->subdir('source');
 system( "svk import -t -m 'dzil plugin check' $dir /$depotname/$name" );
