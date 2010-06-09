@@ -7,36 +7,42 @@ use warnings;
 
 use Dist::Zilla  1.093250;
 use Dist::Zilla::Tester;
+use SVN::Repos;
 use SVK;
 use SVK::XD;
 use Path::Class;
 use Test::More   tests => 3;
-use Cwd;
+use Cwd; use File::Basename;
+use YAML qw/DumpFile/;
 
 # build fake repository
 my $zilla = Dist::Zilla::Tester->from_config({
   dist_root => dir(qw(t tag)),
 });
 
-chdir $zilla->tempdir->subdir('source');
-mkdir 'svk_depot';
-my $depot = getcwd . '/svk_depot';
+my $name = $zilla->name;
+my $version = $zilla->version;
+
+my $tempdir = $zilla->tempdir;
+my $depotname = basename $tempdir;
+SVN::Repos::create("$tempdir/local", undef, undef, undef,
+				   {'fs-type' => $ENV{SVNFSTYPE} || 'fsfs',
+					'bdb-txn-nosync' => '1',
+					'bdb-log-autoremove' => '1'});
+my $xd = SVK::XD->new( giantlock => "$tempdir/lock",
+	statefile => "$tempdir/config",
+	svkpath => "$tempdir",
+	);
+DumpFile "$tempdir/config", { depotmap => { $depotname => "$tempdir/local" } };
+$xd->load();
+$xd->store();
 my $output;
-my $xd = SVK::XD->new;
-$xd->_create_depot( $depot );
-# SVK::Command->invoke($xd, 'depotmap', undef, '/dzil/', $depot );
 my $svk = SVK->new (xd => $xd, output => \$output);
-$svk->depotmap( '/dzil/', $depot );
-$svk->checkout('/dzil/', '.');
-$svk->ignore( 'svk_depot' );
-$svk->commit( '-m', 'ignore repo in working copy!' );
 
-$svk->mkdir('/dzil/project', '-m', 'project' );
-$svk->mkdir('/dzil/project/trunk', '-m', 'trunk!' );
-$svk->mkdir('/dzil/project/tags', '-m', 'tags!' );
-
-$svk->mkdir('/dzil/project/trunk/change', '-m', 'trunk change!' );
-$svk->checkout('/dzil/project/trunk', '.');
+chdir $zilla->tempdir->subdir('source');
+$svk->import('-t', '-m', 'dzil plugin tags', "/$depotname/$name" );
+$svk->ignore( "$name-$version.tar.gz");
+$svk->commit( '-m', 'ignore tarball built by release.' );
 
 # do the release
 $zilla->release;
