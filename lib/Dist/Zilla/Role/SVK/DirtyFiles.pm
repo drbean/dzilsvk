@@ -59,14 +59,13 @@ In scalar context, returns the number of dirty files.
 sub list_dirty_files
 {
   my ($self, $listAllowed) = @_;
-
-  my %allowed = map { $_ => 1 } $self->allow_dirty->flatten;
+  my $allowlist = $self->allow_dirty;
+  my %allowed = map { $_ => 1 } @$allowlist;
   my @file = qx "svk status";
-  my @uncommitted = grep m/^(M|D)/, @file;
-  # my @bases = map { basename($_) } @uncommitted;
-  # return grep { $allowed{$_} ? $listAllowed : !$listAllowed } @uncommitted;
-  return grep { $allowed{$_} ? $listAllowed : not $listAllowed } $self->allow_dirty->flatten;
-  # return grep { $allowed{$_} ? ! $listAllowed : $listAllowed } @bases;
+  my @uncommitted = grep m/^("?M|D)/, @file;
+  chomp @uncommitted;
+  s/^.*\s(\S+)$/$1/ for @uncommitted;
+  return grep { $allowed{$_} ? $listAllowed : ! $listAllowed } @uncommitted;
 } # end list_dirty_files
 
 
