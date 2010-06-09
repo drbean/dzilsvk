@@ -9,26 +9,32 @@ use SVK;
 use SVK::XD;
 use Path::Class;
 use Test::More   tests => 1;
-use Cwd;
+use Cwd; use File::Basename;
+use Try::Tiny;
 
 # build fake repository
 my $zilla = Dist::Zilla::Tester->from_config({
   dist_root => dir(qw(t commit)),
 });
 
+my $name = $zilla->name;
+my $version = $zilla->version;
+
+my $tempdir = $zilla->tempdir;
+my $depotname = basename( "$tempdir" );
+try { system( "svnadmin create $tempdir/local" ); } catch {
+	warn "Can't create $tempdir/local: $_" };
+
+system( "svk depotmap -i $depotname $tempdir/local" );
+
 chdir $zilla->tempdir->subdir('source');
-mkdir 'svk_depot';
-my $depot = getcwd . '/svk_depot';
-my $output;
-my $xd = SVK::XD->new;
-$xd->_create_depot( $depot );
-my $svk = SVK->new (xd => $xd, output => \$output);
-$svk->depotmap( '/dzil/', $depot );
-$svk->checkout('/dzil/', '.');
-$svk->ignore( 'svk_depot' );
-$svk->commit( '-m', 'ignore repo in working copy!' );
-$svk->add( qw{ dist.ini Changes } );
-$svk->commit( message => 'initial commit' );
+system( "svk import -t -m 'dzil plugin tags' /$depotname/$name" );
+system( "svk ignore $name-$version.tar.gz");
+system( "svk commit -m 'ignore tarball built by release.'" );
+
+
+system( "svk add dist.ini Changes" );
+system( "svk commit -m 'initial commit'" );
 
 # do a release, with changes and dist.ini updated
 append_to_file('Changes',  "\n");
@@ -36,8 +42,8 @@ append_to_file('dist.ini', "\n");
 $zilla->release;
 
 # check if dist.ini and changelog have been committed
-my ($log) = $svk->log( 'HEAD' );
-is( $log->message, "v1.23\n\n- foo\n- bar\n- baz\n", 'commit message taken from changelog' );
+my $log = qx/ svk log -r HEAD /;
+like( $log, qr/v1.23\n\n - foo\n - bar\n - baz\n/, 'commit message taken from changelog' );
 
 sub append_to_file {
     my ($file, @lines) = @_;
