@@ -25,7 +25,7 @@ use String::Formatter method_stringf => {
 };
 
 with 'Dist::Zilla::Role::AfterRelease';
-with 'Dist::Zilla::Role::Git::DirtyFiles';
+with 'Dist::Zilla::Role::SVK::DirtyFiles';
 
 
 # -- attributes
@@ -37,15 +37,12 @@ has commit_msg => ( ro, isa=>Str, default => 'v%v%n%n%c' );
 
 sub after_release {
     my $self = shift;
-    my $output;
-    my $xd = SVK::XD->new;
-	my $svk = SVK->new( xd => $xd, output => \$output );
 
     # check if there are dirty files that need to be committed.
     # at this time, we know that only those 2 files may remain modified,
     # otherwise before_release would have failed, ending the release
     # process.
-    my @output = sort { lc $a cmp lc $b } $self->list_dirty_files($svk, 1);
+    my @output = sort { lc $a cmp lc $b } $self->list_dirty_files(1);
     return unless @output;
 
     # write commit message in a temp file
@@ -54,8 +51,8 @@ sub after_release {
     close $fh;
 
     # commit the files in svk
-    $svk->add( @output );
-    $self->log_debug($_) for $svk->commit( '-F', $filename );
+    system( "svk add @output" );
+    $self->log_debug($_) for qx "svk commit -F $filename";
     $self->log("Committed @output");
 }
 
