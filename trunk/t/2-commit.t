@@ -5,8 +5,6 @@ use warnings;
 
 use Dist::Zilla  1.093250;
 use Dist::Zilla::Tester;
-use SVK;
-use SVK::XD;
 use Path::Class;
 use Test::More   tests => 1;
 use Cwd; use File::Basename;
