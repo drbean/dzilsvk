@@ -18,7 +18,7 @@ my $zilla = Dist::Zilla::Tester->from_config({
   dist_root => dir(qw(t check)),
 });
 
-my $name = $zilla->name;
+my $project = $zilla->name;
 my $version = $zilla->version;
 
 my $tempdir = $zilla->tempdir;
@@ -29,10 +29,10 @@ try { system( "svnadmin create $tempdir/local" ); } catch {
 system( "svk depotmap -i $depotname $tempdir/local" );
 
 chdir $zilla->tempdir->subdir('source');
-system( "svk import -t -m 'dzil plugin check' /$depotname/$name" );
+system( "svk import -t -m 'dzil plugin check' /$depotname/$project" );
 
 # ignore archive created by zilla at release
-system("svk ignore $name-$version.tar.gz");
+system("svk ignore $project-$version.tar.gz");
 system( "svk commit -m 'ignore tarball built by release.'" );
 
 # untracked files
@@ -51,6 +51,8 @@ system( "svk commit -m 'initial commit'" );
 append_to_file('Changes',  "\n");
 append_to_file('dist.ini', "\n");
 lives_ok { $zilla->release } 'Modified Changes and dist.ini allowed';
+
+system( "svk depotmap -d $depotname" );
 
 sub append_to_file {
     my ($file, @lines) = @_;
