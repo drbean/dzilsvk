@@ -7,7 +7,7 @@ use Dist::Zilla  1.093250;
 use Dist::Zilla::Tester;
 use Path::Class;
 use Test::More   tests => 1;
-use Cwd; use File::Basename;
+use File::Basename;
 use Try::Tiny;
 
 # build fake repository
@@ -15,7 +15,7 @@ my $zilla = Dist::Zilla::Tester->from_config({
   dist_root => dir(qw(t commit)),
 });
 
-my $name = $zilla->name;
+my $project = $zilla->name;
 my $version = $zilla->version;
 
 my $tempdir = $zilla->tempdir;
@@ -26,8 +26,8 @@ try { system( "svnadmin create $tempdir/local" ); } catch {
 system( "svk depotmap -i $depotname $tempdir/local" );
 
 chdir $zilla->tempdir->subdir('source');
-system( "svk import -t -m 'dzil plugin tags' /$depotname/$name" );
-system( "svk ignore $name-$version.tar.gz");
+system( "svk import -t -m 'dzil plugin tags' /$depotname/$project" );
+system( "svk ignore $project-$version.tar.gz");
 system( "svk commit -m 'ignore tarball built by release.'" );
 
 
