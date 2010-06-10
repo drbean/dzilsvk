@@ -7,6 +7,9 @@ package Dist::Zilla::Plugin::SVK::Tag;
 
 use SVK;
 use SVK::XD;
+use SVK::Util qw/find_dotsvk/;
+use List::MoreUtils qw/any/;
+
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::Types::Moose qw{ Str };
@@ -31,48 +34,56 @@ has tag_format  => ( ro, isa=>Str, default => 'v%v' );
 has tag_message => ( ro, isa=>Str, default => 'v%v' );
 has tag_directory => ( ro, isa=>Str, default => 'tags' );
 
+my $svkpath = find_dotsvk || $ENV{SVKROOT} || $ENV{HOME} . "/.svk";
 
 # -- role implementation
 
 sub before_release {
     my $self = shift;
     my $output;
-	my $xd = SVK::XD->new( giantlock => "$tempdir/lock",
-		statefile => "$tempdir/config",
-		svkpath => "/home/drbean/.svk",
+	my $xd = SVK::XD->new( giantlock => "$svkpath/lock",
+		statefile => "$svkpath/config",
+		svkpath => $svkpath,
 		);
 	my $svk = SVK->new( xd => $xd, output => \$output );
+	$xd->load();
 	my ( undef, $branch, undef, $cinfo, undef ) = 
 		$xd->find_repos_from_co( '.', undef );
 	my $depotpath = $cinfo->{depotpath};
-	my $firstpart = qr|^/(.*?)/|;
+	my $firstpart = qr|^/([^/]*)|;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
 	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
-	my $tags = $self->tag_directory;
+	my $tag_dir = $self->tag_directory;
 
     # Make sure a tag with the new version doesn't exist yet:
     my $tag = _format_tag($self->tag_format, $self->zilla);
-    $self->log_fatal("tag $tag already exists")
-        if qx| $svk ls "/$depotname/$project/$tags/$tag" |;
+	$svk->ls("/$depotname/$project/$tag_dir");
+	my @tags = split "\n", $output;
+    $self->log_fatal("tag $tag already exists") if any { m/^$tag/ } @tags;
+	$xd->store;
 }
 
 sub after_release {
     my $self = shift;
     my $output;
-    my $xd = SVK::XD->new;
+	my $xd = SVK::XD->new( giantlock => "$svkpath/lock",
+		statefile => "$svkpath/config",
+		svkpath => $svkpath,
+		);
 	my $svk = SVK->new( xd => $xd, output => \$output );
+	$xd->load();
 	my ( undef, $branch, undef, $cinfo, undef ) = 
 		$xd->find_repos_from_co( '.', undef );
 	my $depotpath = $cinfo->{depotpath};
-	my $firstpart = qr|^/(.*?)/|;
+	my $firstpart = qr|^/([^/]*)|;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
 	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
-	my $tags = $self->tag_directory;
+	my $tag_dir = $self->tag_directory;
 
     # create a tag with the new version
     my $tag = _format_tag($self->tag_format, $self->zilla);
     my $message = _format_tag($self->tag_message, $self->zilla);
-	$svk->copy( "/$depotname/$branch", "/$depotname/$project/$tags/$tag",
+	$svk->copy( "$depotpath", "/$depotname/$project/$tag_dir/$tag",
 		'-m', $message );
     $self->log("Tagged $tag");
 }
@@ -92,7 +103,7 @@ In your F<dist.ini>:
     [SVK::Tag]
     tag_format  = v%v       ; this is the default
     tag_message = v%v       ; this is the default
-	tag_directory = tags    ; the default is 'tags', as in /project/tags
+	tag_directory = tags    ; the default is 'tags', as in /$project/tags
 
 =head1 DESCRIPTION
 
