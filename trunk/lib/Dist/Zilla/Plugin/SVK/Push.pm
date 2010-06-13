@@ -54,7 +54,8 @@ sub after_release {
 	$self->log_debug( "The local changes" );
 	my $switchpath = $depotpath;
 	$switchpath = dirname( $switchpath ) until basename( $switchpath ) eq
-		$project_dir;
+		$project_dir or basename( $switchpath ) eq $depotname;
+	$switchpath .= "/$tag_dir";
 	$svk->switch( $switchpath );
 	# $svk->switch("/$depotname/local/Foo/tags");
 	$svk->push;
