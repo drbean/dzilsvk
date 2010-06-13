@@ -69,6 +69,7 @@ $zilla->release;
 my $log = qx "svk log -r HEAD /$remotename/$project_dir/trunk/";
 like( $log, qr/v1\.23\n \n  - foo\n  - bar\n  - baz\n/, 'commit pushed' );
 my $taglog = qx "svk log -r HEAD /$remotename/$project_dir/tags/";
+is( scalar( $taglog =~ m/v1\.23/g ), 1, 'one tag pushed' );
 like( $taglog, qr/v1\.23/, 'new tag pushed after new version' );
 
 system( "svk depotmap -d $depotname" );
@@ -80,9 +81,3 @@ sub append_to_file {
     print $fh @lines;
     close $fh;
 }
-__END__
-
-
-# check if tag has been correctly created
-my @tags = $git->tag;
-is( scalar(@tags), 1, 'one tag pushed' );
