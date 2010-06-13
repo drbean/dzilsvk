@@ -66,7 +66,7 @@ append_to_file('dist.ini', "\n");
 $zilla->release;
 
 # check if everything was pushed
-my $log = qx "svk log -r HEAD /$remotename/";
+my $log = qx "svk log -r HEAD /$remotename/$project_dir/trunk/";
 like( $log, qr/v1\.23\n \n  - foo\n  - bar\n  - baz\n/, 'commit pushed' );
 my $taglog = qx "svk log -r HEAD /$remotename/$project_dir/tags/";
 like( $taglog, qr/v1\.23/, 'new tag pushed after new version' );
