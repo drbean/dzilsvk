@@ -9,6 +9,7 @@ use SVK;
 use SVK::XD;
 use SVK::Util qw/find_dotsvk/;
 use List::MoreUtils qw/any/;
+use File::Basename;
 
 use Moose;
 use MooseX::Has::Sugar;
@@ -34,13 +35,12 @@ has tag_format  => ( ro, isa=>Str, default => 'v%v' );
 has tag_message => ( ro, isa=>Str, default => 'v%v' );
 has tag_directory => ( ro, isa=>Str, default => 'tags' );
 
-my $svkpath = find_dotsvk || $ENV{SVKROOT} || $ENV{HOME} . "/.svk";
-
 # -- role implementation
 
 sub before_release {
     my $self = shift;
-    my $output;
+	my $svkpath = find_dotsvk || $ENV{SVKROOT} || $ENV{HOME} . "/.svk";
+	my $output;
 	my $xd = SVK::XD->new( giantlock => "$svkpath/lock",
 		statefile => "$svkpath/config",
 		svkpath => $svkpath,
@@ -65,7 +65,8 @@ sub before_release {
 
 sub after_release {
     my $self = shift;
-    my $output;
+	my $svkpath = find_dotsvk || $ENV{SVKROOT} || $ENV{HOME} . "/.svk";
+	my $output;
 	my $xd = SVK::XD->new( giantlock => "$svkpath/lock",
 		statefile => "$svkpath/config",
 		svkpath => $svkpath,
@@ -77,15 +78,21 @@ sub after_release {
 	my $depotpath = $cinfo->{depotpath};
 	my $firstpart = qr|^/([^/]*)|;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
-	( my $project = $branch ) =~ s|$firstpart.*$|$1|;
+	my $project = $self->zilla->name;
+	my $project_dir = lc $project;
+	$project_dir =~ s/::/-/g;
 	my $tag_dir = $self->tag_directory;
 
-    # create a tag with the new version
-    my $tag = _format_tag($self->tag_format, $self->zilla);
-    my $message = _format_tag($self->tag_message, $self->zilla);
-	$svk->copy( "$depotpath", "/$depotname/$project/$tag_dir/$tag",
+	# create a tag with the new version
+	my $tag = _format_tag($self->tag_format, $self->zilla);
+	my $message = _format_tag($self->tag_message, $self->zilla);
+	my $tagpath = $depotpath;
+	$tagpath = dirname( $tagpath ) until basename( $tagpath ) eq
+		$project_dir or basename( $tagpath ) eq $depotname;;
+	$tagpath .= "/$tag_dir";
+	$svk->copy( "$depotpath", "$tagpath/$tag",
 		'-m', $message );
-    $self->log("Tagged $tag");
+		$self->log("Tagged $tag");
 }
 
 1;
