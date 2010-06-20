@@ -54,6 +54,7 @@ sub after_release {
     system( "svk add @output" );
     $self->log_debug($_) for qx "svk commit -F $filename";
     $self->log("Committed @output");
+	unlink $filename;
 }
 
 
