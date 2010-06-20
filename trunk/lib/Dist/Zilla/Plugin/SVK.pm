@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 package Dist::Zilla::Plugin::SVK;
-# ABSTRACT: update your git repository after release
+# ABSTRACT: have svk update your repository at release time
 
 use Dist::Zilla 2.100880;    # Need mvp_multivalue_args in Plugin role
 1;
@@ -12,9 +12,7 @@ __END__
 
 =head1 DESCRIPTION
 
-This set of plugins for L<Dist::Zilla> can do interesting things for
-module authors using L<svk|http://svk.bestpractical.com> to track their work. The
-following plugins are provided in this distribution:
+This set of plugins for L<Dist::Zilla> can do interesting things for module authors using L<svk|http://svk.bestpractical.com> to track their work. The following plugins are provided in this distribution:
 
 =over 4
 
@@ -29,14 +27,17 @@ following plugins are provided in this distribution:
 =back
 
 
-If you want to use all of them at once, you will be interested by
-L<Dist::Zilla::PluginBundle::SVK>.
+If you want to use all of them at once, you will be interested by L<Dist::Zilla::PluginBundle::SVK>.
 
 
 
 =head1 SEE ALSO
 
-You can look for information on this module at:
+Dist::Zilla::Plugin::Git, from which this module was ported:
+
+L<http://search.cpan.org/dist/Dist-Zilla-Plugin-Git>
+
+You can look for information on the SVK module at:
 
 =over 4
 
@@ -54,7 +55,7 @@ L<http://www.listbox.com/subscribe/?list_id=139292>
 
 =item * SVK repository
 
-L<http://github.com/jquelin/dist-zilla-plugin-git>
+L<http://svn.openfoundry.org/dzilsvk>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
