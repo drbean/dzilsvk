@@ -80,7 +80,7 @@ In your F<dist.ini>:
 
 =head1 DESCRIPTION
 
-Once the release is done, this plugin will push current git branch to
+Once the release is done, this plugin will push current svk branch to
 remote end, with the associated tags.
 
 
