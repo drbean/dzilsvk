@@ -93,6 +93,7 @@ sub after_release {
 	$svk->copy( "$depotpath", "$tagpath/$tag",
 		'-m', $message );
 		$self->log("Tagged $tag");
+	$xd->store;
 }
 
 1;
