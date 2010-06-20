@@ -16,7 +16,7 @@ use Cwd; use File::Basename;
 
 =attr allow_dirty
 
-A list of files that are allowed to be dirty in the git checkout.
+A list of files that are allowed to be dirty in the svk checkout.
 Defaults to C<dist.ini> and the changelog (as defined per the
 C<changelog> attribute.
 
