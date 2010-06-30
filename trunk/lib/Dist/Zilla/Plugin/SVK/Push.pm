@@ -30,18 +30,9 @@ with 'Dist::Zilla::Role::AfterRelease';
 
 sub after_release {
     my $self = shift;
-	my $svkpath = find_dotsvk || $ENV{SVKROOT} || $ENV{HOME} . "/.svk";
-	my $output;
-	my $xd = SVK::XD->new( giantlock => "$svkpath/lock",
-		statefile => "$svkpath/config",
-		svkpath => $svkpath,
-		);
-	my $svk = SVK->new( xd => $xd, output => \$output );
-	$xd->load();
-	my ( undef, $branch, undef, $cinfo, undef ) = 
-		$xd->find_repos_from_co( '.', undef );
-	my $depotpath = $cinfo->{depotpath};
 	my $namepart = qr|[^/]*|;
+	my $info = qx "svk info";
+	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
 	( my $depotname = $depotpath ) =~ s|^/($namepart).*$|$1|;
 	my $project = $self->zilla->name;
 	my $project_dir = lc $project;
@@ -50,17 +41,15 @@ sub after_release {
 
 	# push everything on remote branch
 	$self->log("pushing to remote");
-	$svk->push;
+	system( 'svk push' );
 	$self->log_debug( "The local changes" );
 	my $switchpath = $depotpath;
 	$switchpath = dirname( $switchpath ) until basename( $switchpath ) eq
 		$project_dir or basename( $switchpath ) eq $depotname;
 	$switchpath .= "/$tag_dir";
-	$svk->switch( $switchpath );
-	# $svk->switch("/$depotname/local/Foo/tags");
-	$svk->push;
+	system( "svk switch $switchpath" );
+	system( 'svk push' );
 	$self->log_debug( "The tags too" );
-	$xd->store;
 }
 
 1;
