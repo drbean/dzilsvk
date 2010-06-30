@@ -35,13 +35,7 @@ has tag_format  => ( ro, isa=>Str, default => 'v%v' );
 has tag_message => ( ro, isa=>Str, default => 'v%v' );
 has tag_directory => ( ro, isa=>Str, default => 'tags' );
 
-=head2 -- role implementation
-
-=head3 before_release
-
-Depotpath from second line of 'svk info'. Depotname from after first slash. Project from dist.ini, is directory under depotname.
-
-=cut
+# -- role implementation
 
 sub before_release {
     my $self = shift;
