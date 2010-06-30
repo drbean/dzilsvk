@@ -34,7 +34,7 @@ sub after_release {
 	my $info = qx "svk info";
 	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
 	( my $depotname = $depotpath ) =~ s|^/($namepart).*$|$1|;
-	my $project = $self->zilla->name;
+	my $project = $self->project || $self->zilla->name;
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $self->zilla->plugin_named('SVK::Tag')->tag_directory;

@@ -33,6 +33,7 @@ with 'Dist::Zilla::Role::AfterRelease';
 
 has tag_format  => ( ro, isa=>Str, default => 'v%v' );
 has tag_message => ( ro, isa=>Str, default => 'v%v' );
+has project => ( ro, isa=>Str );
 has tag_directory => ( ro, isa=>Str, default => 'tags' );
 
 # -- role implementation
@@ -43,7 +44,7 @@ sub before_release {
 	my $info = qx "svk info";
 	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
-	my $project = $self->zilla->name;
+	my $project = $self->project || $self->zilla->name;
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $self->tag_directory;
@@ -61,7 +62,7 @@ sub after_release {
 	my $info = qx "svk info";
 	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
-	my $project = $self->zilla->name;
+	my $project = $self->project || $self->zilla->name;
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $self->tag_directory;
@@ -92,6 +93,7 @@ In your F<dist.ini>:
     [SVK::Tag]
     tag_format  = v%v       ; this is the default
     tag_message = v%v       ; this is the default
+	project = someid        ; the default is lc $dzilla->name,
 	tag_directory = tags    ; the default is 'tags', as in /$project/tags
 
 =head1 DESCRIPTION
@@ -107,6 +109,8 @@ The plugin accepts the following options:
 =item * tag_format - format of the tag to apply. Defaults to C<v%v>.
 
 =item * tag_message - format of the commit message. Defaults to C<v%v>.
+
+=item * project - the project directory, below which typically are 'trunk', 'branches' and 'tags' subdirectories. Defaults to C<$dzilla->name>, lowercased.
 
 =item * tag_directory - location of the tags directory, below the project directory. Defaults to C<tags>.
 
