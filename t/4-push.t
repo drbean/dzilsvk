@@ -56,10 +56,6 @@ system( "svk import -t /$depotname/local/$project_dir/trunk -m 'plugin files'" )
 system( "svk ignore $project-$version.tar.gz" );
 system( "svk commit -m 'ignore tarball built by release.'" );
 
-system( "svk add dist.ini Changes" );
-system( "svk commit -m 'initial commit'" );
-
-
 # do the release
 append_to_file('Changes',  "\n");
 append_to_file('dist.ini', "\n");

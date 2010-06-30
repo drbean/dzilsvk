@@ -30,10 +30,6 @@ system( "svk import -t -m 'dzil plugin tags' /$depotname/$project" );
 system( "svk ignore $project-$version.tar.gz");
 system( "svk commit -m 'ignore tarball built by release.'" );
 
-
-system( "svk add dist.ini Changes" );
-system( "svk commit -m 'initial commit'" );
-
 # do a release, with changes and dist.ini updated
 append_to_file('Changes',  "\n");
 append_to_file('dist.ini', "\n");
