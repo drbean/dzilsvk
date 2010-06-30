@@ -66,14 +66,10 @@ sub after_release {
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $self->tag_directory;
-
+	my $tagpath = "/$depotname/$project_dir/$tag_dir";
 	# create a tag with the new version
 	my $tag = _format_tag($self->tag_format, $self->zilla);
 	my $message = _format_tag($self->tag_message, $self->zilla);
-	my $tagpath = $depotpath;
-	$tagpath = dirname( $tagpath ) until basename( $tagpath ) eq
-		$project_dir or basename( $tagpath ) eq $depotname;;
-	$tagpath .= "/$tag_dir";
 	system( "svk copy $depotpath $tagpath/$tag -m $message" );
 	$self->log("Tagged $tag");
 }
