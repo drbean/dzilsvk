@@ -34,7 +34,8 @@ sub after_release {
 	my $info = qx "svk info";
 	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
 	( my $depotname = $depotpath ) =~ s|^/($namepart).*$|$1|;
-	my $project = $self->project || $self->zilla->name;
+	my $project = $self->zilla->plugin_named('SVK::Tag')->project ||
+			$self->zilla->name;
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $self->zilla->plugin_named('SVK::Tag')->tag_directory;
@@ -65,13 +66,12 @@ In your F<dist.ini>:
 
     [Git::Push]
     push_to = //mirror/project      ; this is the default
-    push_to = origin HEAD:refs/heads/released ; also push to released branch
 
 
 =head1 DESCRIPTION
 
 Once the release is done, this plugin will push current svk branch to
-remote end, with the associated tags.
+remote that it was copied from, but the associated tags need the mirror name.
 
 
 The plugin accepts the following options:
@@ -80,7 +80,7 @@ The plugin accepts the following options:
 
 =item * 
 
-push_to - the name of the a remote to push to. The default is F<origin>.
-This may be specified multiple times to push to multiple repositories.
+push_to - the name of the remote to push to. The default is F<//mirror/projectname>.
+
 
 =back
