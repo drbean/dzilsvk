@@ -1,4 +1,9 @@
 ---
+version: 0.06
+date: 三  6月 30 22:18:04 CST 2010
+changes:
+  - Test release of project accessor. Tests pass, but after_release doesn't.
+---
 version: 0.05
 date: 三  6月 30 15:55:44 CST 2010
 changes:
