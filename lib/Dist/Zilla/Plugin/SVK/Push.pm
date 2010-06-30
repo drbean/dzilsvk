@@ -60,6 +60,7 @@ sub after_release {
 	# $svk->switch("/$depotname/local/Foo/tags");
 	$svk->push;
 	$self->log_debug( "The tags too" );
+	$xd->store;
 }
 
 1;
