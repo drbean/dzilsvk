@@ -21,7 +21,7 @@ with 'Dist::Zilla::Role::AfterRelease';
 # -- attributes
 
 has push_to => (
-  is   => 'ro',
+  is   => 'rw',
   isa  => 'ArrayRef[Str]',
   lazy => 1,
   default => sub { [ qw(origin) ] },
