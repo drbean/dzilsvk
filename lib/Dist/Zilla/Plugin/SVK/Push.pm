@@ -60,7 +60,7 @@ sub after_release {
 	my $tag_message = $tagger->tag_message;
 	my $tag = _format_tag($tag_format, $self->zilla);
 	my $message = _format_tag($tag_message, $self->zilla);
-	my $localtagpath = "/$depotpath/$project_dir/$tag_dir/$tag";
+	my $localtagpath = "/$depotname/$project_dir/$tag_dir/$tag";
 	my $remotetagpath = "$remote/$project_dir/$tag_dir/$tag";
 	system( "svk mkdir $remotetagpath -m $message" );
 	system( "svk smerge --baseless $localtagpath $remotetagpath -m $message" );
