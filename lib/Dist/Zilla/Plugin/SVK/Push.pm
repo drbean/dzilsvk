@@ -41,8 +41,10 @@ sub after_release {
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $tagger->tag_directory;
-	my $tag = $tagger->_format_tag($self->tag_format, $self->zilla);
-	my $message = $tagger->_format_tag($self->tag_message, $self->zilla);
+	my $tag_format = $tagger->tag_format;
+	my $tag_message = $tagger->tag_message;
+	my $tag = $tagger->_format_tag($tag_format, $self->zilla);
+	my $message = $tagger->_format_tag($tag_message, $self->zilla);
 	my $remotetagpath = "$remote/$project_dir/$tag_dir/$tag";
 	system( "svk cp $depotpath $remotetagpath -m $message" );
 	$self->log_debug( "The tags too" );
