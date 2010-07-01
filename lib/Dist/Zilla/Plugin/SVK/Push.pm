@@ -50,6 +50,7 @@ sub after_release {
 	$switchpath .= "/$tag_dir";
 	system( "svk switch $switchpath" );
 	system( 'svk push' );
+	system( "svk switch $depotpath" );
 	$self->log_debug( "The tags too" );
 }
 
