@@ -27,7 +27,6 @@ has push_to => (
   default => sub { [ qw(origin) ] },
 );
 
-
 sub after_release {
     my $self = shift;
 	# push everything on remote branch
