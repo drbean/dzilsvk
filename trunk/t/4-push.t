@@ -37,16 +37,17 @@ system( "svk depotmap -i $depotname $tempdir/local" );
 my $remote = tempdir( CLEANUP => 1 );
 my $remotename = basename $remote;
 
-try { system( "svnadmin create $remote/local" ); } catch {
-	carp "Can't create $remote/local: $_" };
-system( "svk depotmap -i $remotename $remote/local" );
-system( "svk mkdir /$remotename/$project_dir/trunk -pm '
-	$project project trunk_dir on remote $remotename repos.' " );
-system( "svk cp /$remotename/$project_dir/trunk /$remotename/$project_dir/tags -m '
+try { system( "svnadmin create $remote" ); } catch {
+	carp "Can't create $remote: $_" };
+system( "svn mkdir file://$remote/$project_dir -m '
+	$project dir on remote $remotename repos.' " );
+system( "svn mkdir file://$remote/$project_dir/trunk -m '
+	$project trunk_dir on remote $remotename repos.' " );
+system( "svn cp file://$remote/$project_dir/trunk file://$remote/$project_dir/tags -m '
 	$project project tag_dir on remote $remotename repos.' " );
 
 system( "svk mkdir /$depotname/mirror -m 'mirror of $project repo.'" );
-system( "svk mirror /$depotname/mirror/$project_dir file://$remote/local/$project_dir" );
+system( "svk mirror /$depotname/mirror/$project_dir file://$remote/$project_dir" );
 system( "svk sync /$depotname/mirror/$project_dir" );
 system( "svk cp /$depotname/mirror/$project_dir /$depotname/local/$project_dir -pm '
 	local $project project development'" );
@@ -62,14 +63,14 @@ append_to_file('dist.ini', "\n");
 $zilla->release;
 
 # check if everything was pushed
-my $log = qx "svk log -r HEAD /$remotename/$project_dir/trunk/";
-like( $log, qr/v1\.23\n \n  - foo\n  - bar\n  - baz\n/, 'commit pushed' );
-my $taglog = qx "svk log -r HEAD /$remotename/$project_dir/tags/";
+my $log = qx "svn log -r 6:HEAD file://$remote/$project_dir/trunk/";
+# like( $log, qr/v1\.23\n\n  - foo\n  - bar\n  - baz\n/, 'commit pushed' );
+like( $log, qr/v1\.23/, 'commit pushed' );
+my $taglog = qx "svn log -r HEAD file://$remote/$project_dir/tags/";
 is( scalar( $taglog =~ m/v1\.23/g ), 1, 'one tag pushed' );
 like( $taglog, qr/v1\.23/, 'new tag pushed after new version' );
 
 system( "svk depotmap -d $depotname" );
-system( "svk depotmap -d $remotename" );
 
 sub append_to_file {
     my ($file, @lines) = @_;
