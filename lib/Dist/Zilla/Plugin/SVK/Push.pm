@@ -13,6 +13,16 @@ use File::Basename;
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::Types::Moose qw{ ArrayRef Str };
+use String::Formatter method_stringf => {
+  -as => '_format_tag',
+  codes => {
+    d => sub { require DateTime;
+               DateTime->now->format_cldr($_[1] || 'dd-MMM-yyyy') },
+    n => sub { "\n" },
+    N => sub { $_[0]->name },
+    v => sub { $_[0]->version },
+  },
+};
 
 with 'Dist::Zilla::Role::AfterRelease';
 
@@ -43,10 +53,11 @@ sub after_release {
 	my $tag_dir = $tagger->tag_directory;
 	my $tag_format = $tagger->tag_format;
 	my $tag_message = $tagger->tag_message;
-	my $tag = $tagger->_format_tag($tag_format, $self->zilla);
-	my $message = $tagger->_format_tag($tag_message, $self->zilla);
+	my $tag = _format_tag($tag_format, $self->zilla);
+	my $message = _format_tag($tag_message, $self->zilla);
 	my $remotetagpath = "$remote/$project_dir/$tag_dir/$tag";
-	system( "svk cp $depotpath $remotetagpath -m $message" );
+	system( "svk mkdir $remotetagpath -m $message" );
+	system( "svk smerge --baseless $depotpath $remotetagpath -m $message" );
 	$self->log_debug( "The tags too" );
 }
 
