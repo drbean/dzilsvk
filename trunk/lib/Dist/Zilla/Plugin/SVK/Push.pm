@@ -65,8 +65,8 @@ __END__
 
 In your F<dist.ini>:
 
-    [Git::Push]
-    push_to = //mirror/project      ; this is the default
+    [SVK::Push]
+    push_to = //mirror      ; this is the default, the project is underneath
 
 
 =head1 DESCRIPTION
@@ -81,7 +81,7 @@ The plugin accepts the following options:
 
 =item * 
 
-push_to - the name of the remote to push to. The default is F<//mirror/projectname>.
+push_to - the name of the remote repo to push to. The default is F<//mirror>. The project and tags subdirectories underneath the remote are from F<Tag.pm>, 
 
 
 =back
