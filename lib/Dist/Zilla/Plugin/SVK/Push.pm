@@ -22,9 +22,9 @@ with 'Dist::Zilla::Role::AfterRelease';
 
 has push_to => (
   is   => 'rw',
-  isa  => 'ArrayRef[Str]',
+  isa  => 'Str',
   lazy => 1,
-  default => sub { [ qw(origin) ] },
+  default => "//mirror",
 );
 
 sub after_release {
