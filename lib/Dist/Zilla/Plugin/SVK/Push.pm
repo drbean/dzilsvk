@@ -43,21 +43,28 @@ sub after_release {
 	$self->log("pushing to remote");
 	system( 'svk push' );
 	$self->log_debug( "The local changes" );
-	my $info = qx "svk info";
-	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
-	my $remote = $self->push_to;
 	my $tagger = $self->zilla->plugin_named('SVK::Tag');
 	my $project = $tagger->project || $self->zilla->name;
 	my $project_dir = lc $project;
 	$project_dir =~ s/::/-/g;
 	my $tag_dir = $tagger->tag_directory;
+	my $firstpart = qr|^/([^/]*)|;
+	my $info = qx "svk info";
+	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
+	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
+	$depotpath = dirname( $depotpath ) until basename( $depotpath ) eq
+		$project_dir or basename( $depotpath ) eq $depotname
+			or basename( $depotpath ) eq '/';
+	my $remote = $self->push_to;
 	my $tag_format = $tagger->tag_format;
 	my $tag_message = $tagger->tag_message;
 	my $tag = _format_tag($tag_format, $self->zilla);
 	my $message = _format_tag($tag_message, $self->zilla);
+	my $localtagpath = "/$depotpath/$project_dir/$tag_dir/$tag";
 	my $remotetagpath = "$remote/$project_dir/$tag_dir/$tag";
 	system( "svk mkdir $remotetagpath -m $message" );
-	system( "svk smerge --baseless $depotpath $remotetagpath -m $message" );
+	system( "svk smerge --baseless $localtagpath $remotetagpath -m $message" );
+	# system( "svk cp $localtagpath $remotetagpath -m $message" );
 	$self->log_debug( "The tags too" );
 }
 
