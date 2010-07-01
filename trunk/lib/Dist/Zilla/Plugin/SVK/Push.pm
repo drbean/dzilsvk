@@ -20,37 +20,32 @@ with 'Dist::Zilla::Role::AfterRelease';
 
 # -- attributes
 
-#has push_to => (
-#  is   => 'ro',
-#  isa  => 'ArrayRef[Str]',
-#  lazy => 1,
-#  default => sub { [ qw(origin) ] },
-#);
+has push_to => (
+  is   => 'ro',
+  isa  => 'ArrayRef[Str]',
+  lazy => 1,
+  default => sub { [ qw(origin) ] },
+);
 
 
 sub after_release {
     my $self = shift;
-	my $namepart = qr|[^/]*|;
-	my $info = qx "svk info";
-	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
-	( my $depotname = $depotpath ) =~ s|^/($namepart).*$|$1|;
-	my $project = $self->zilla->plugin_named('SVK::Tag')->project ||
-			$self->zilla->name;
-	my $project_dir = lc $project;
-	$project_dir =~ s/::/-/g;
-	my $tag_dir = $self->zilla->plugin_named('SVK::Tag')->tag_directory;
-
 	# push everything on remote branch
 	$self->log("pushing to remote");
 	system( 'svk push' );
 	$self->log_debug( "The local changes" );
-	my $switchpath = $depotpath;
-	$switchpath = dirname( $switchpath ) until basename( $switchpath ) eq
-		$project_dir or basename( $switchpath ) eq $depotname;
-	$switchpath .= "/$tag_dir";
-	system( "svk switch $switchpath" );
-	system( 'svk push' );
-	system( "svk switch $depotpath" );
+	my $info = qx "svk info";
+	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
+	my $remote = $self->push_to;
+	my $tagger = $self->zilla->plugin_named('SVK::Tag');
+	my $project = $tagger->project || $self->zilla->name;
+	my $project_dir = lc $project;
+	$project_dir =~ s/::/-/g;
+	my $tag_dir = $tagger->tag_directory;
+	my $tag = $tagger->_format_tag($self->tag_format, $self->zilla);
+	my $message = $tagger->_format_tag($self->tag_message, $self->zilla);
+	my $remotetagpath = "$remote/$project_dir/$tag_dir/$tag";
+	system( "svk cp $depotpath $remotetagpath -m $message" );
 	$self->log_debug( "The tags too" );
 }
 
