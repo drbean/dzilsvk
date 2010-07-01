@@ -1,4 +1,10 @@
 ---
+version: 0.09
+date: 四  7月  1 17:07:33 CST 2010
+changes:
+  - Baseless smerge of local tags rather than trunk to remote tags
+
+---
 version: 0.08
 date: 四  7月  1 16:29:37 CST 2010
 changes:
