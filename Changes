@@ -1,8 +1,8 @@
 ---
-version: 0.09
-date: 四  7月  1 17:07:33 CST 2010
+version: 0.10
+date: 五  7月  2 08:31:11 CST 2010
 changes:
-  - Baseless smerge of local tags rather than trunk to remote tags
+  - Local tag path constructed from svk info's depotpath
 
 ---
 version: 0.08
