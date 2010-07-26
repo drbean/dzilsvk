@@ -5,11 +5,6 @@ use warnings;
 package Dist::Zilla::Plugin::SVK::Push;
 # ABSTRACT: push current branch
 
-use SVK;
-use SVK::XD;
-use SVK::Util qw/find_dotsvk/;
-use File::Basename;
-
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::Types::Moose qw{ ArrayRef Str };
@@ -52,9 +47,7 @@ sub after_release {
 	my $info = qx "svk info";
 	$info =~ m/^.*\n[^\/]*(\/.*)$/m; my $depotpath = $1;
 	( my $depotname = $depotpath ) =~ s|$firstpart.*$|$1|;
-	$depotpath = dirname( $depotpath ) until basename( $depotpath ) eq
-		$project_dir or basename( $depotpath ) eq $depotname
-			or basename( $depotpath ) eq '/';
+	$depotpath =~ s/^(.*)$project_dir.*$/$1$project_dir/;
 	my $remote = $self->push_to;
 	my $tag_format = $tagger->tag_format;
 	my $tag_message = $tagger->tag_message;
