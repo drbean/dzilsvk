@@ -71,8 +71,7 @@ sub after_release {
 	my $tag = _format_tag($self->tag_format, $self->zilla);
 	my $message = _format_tag($self->tag_message, $self->zilla);
 	my $tagpath = $depotpath;
-	$tagpath = dirname( $tagpath ) until basename( $tagpath ) eq
-		$project_dir or basename( $tagpath ) eq $depotname;;
+	$tagpath =~ s/^(.*)$project_dir.*$/$1$project_dir/;
 	$tagpath .= "/$tag_dir";
 	system( "svk copy $depotpath $tagpath/$tag -m $message" );
 	$self->log("Tagged $tag");
